@@ -1,0 +1,83 @@
+# Goal: Lint build push image to dockerhub
+name: CI
+
+on: 
+  push:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out Frontend Code
+        uses: actions/checkout@v3
+
+      # Linting the UI code
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Linting React Code
+        working-directory: ./frontend
+        run: npm run lint
+
+      #  Docker build push of UI code to dockerhub
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/abhi-chat-app-frontend:latest
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Backend code
+        uses: actions/checkout@v3
+      
+      # Linting the backend code
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Linting Backend Code
+        working-directory: ./backend
+        run: npm run lint
+
+      #  Docker build push of backend code to dockerhub
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_TOKEN}}
+      
+      - name: Build and push Backend image to DockerHub
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{secrets.DOCKER_USERNAME}}/abhi-chat-app-backend:latest
