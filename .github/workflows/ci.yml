@@ -12,7 +12,7 @@ jobs:
       - name: Checking out Frontend Code
         uses: actions/checkout@v3
 
-      # Linting the UI code
+      # Linting the UI code (checks code)
       - name: Set up NodeJS
         uses: actions/setup-node@v3
         with:
