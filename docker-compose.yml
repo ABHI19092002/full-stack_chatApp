@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: abhidocker9755/abhi-chatapp-frontend:latest
+    image: abhidocker9755/abhi-chat-app-frontend:latest
     ports:
       - "8080:80"
     depends_on:
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: abhidocker9755/abhi-chatapp-backend:latest
+    image: abhidocker9755/abhi-chat-app-backend:latest
     ports:
       - "5001:5001"
     depends_on:
