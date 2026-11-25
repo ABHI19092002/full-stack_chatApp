@@ -12,6 +12,7 @@ on:
 jobs:
     deploy:
         runs-on: self-hosted
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -27,4 +28,4 @@ jobs:
             
             - name: Deploy the containers with docker-compose
               run: |
-                    docker-compose -f docker-compose.yml up -d --build
+                    docker compose -f docker-compose.yml up -d --build
