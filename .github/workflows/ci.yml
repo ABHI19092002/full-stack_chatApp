@@ -6,64 +6,40 @@ on:
     branches: [main]
 
 jobs:
-  frontend:
+  lint-frontend-backend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folders: ['frontend','backend']
     steps:
-      - name: Checking out Frontend Code
+      - name: Checking out Code
         uses: actions/checkout@v3
 
-      # Linting the UI code (checks code)
+      # Linting the UI/backend code
       - name: Set up NodeJS
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ./frontend/package-lock.json
+          cache-dependency-path: ./${{ matrix.folders }}/package-lock.json
       
       - name: Install dependencies
-        working-directory: ./frontend
+        working-directory: ./${{ matrix.folders }}
         run: npm ci
 
       - name: Linting React Code
-        working-directory: ./frontend
+        working-directory: ./${{ matrix.folders }}
         run: npm run lint
 
-      #  Docker build push of UI code to dockerhub
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/abhi-chat-app-frontend:latest
-
-  backend:
+  build-push-image:
+    needs: ['lint-frontend-backend']
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folders: ['frontend','backend']
     steps:
-      - name: Checkout Backend code
+      - name: Checkout code
         uses: actions/checkout@v4
-      
-      # Linting the backend code
-      - name: Set up NodeJS
-        uses: actions/setup-node@v5
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ./backend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./backend
-        run: npm ci
-
-      - name: Linting Backend Code
-        working-directory: ./backend
-        run: npm run lint
 
       #  Docker build push of backend code to dockerhub
       - name: Setup Docker Buildx
@@ -78,6 +54,6 @@ jobs:
       - name: Build and push Backend image to DockerHub
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./${{ matrix.folders }}
           push: true
-          tags: ${{secrets.DOCKER_USERNAME}}/abhi-chat-app-backend:latest
+          tags: ${{secrets.DOCKER_USERNAME}}/abhi-chat-app-${{ matrix.folders }}:latest
