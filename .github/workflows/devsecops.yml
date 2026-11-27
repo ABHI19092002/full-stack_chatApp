@@ -1,1 +1,10 @@
+name: DevSecOps
 
+on:
+  push:
+    branches: 
+      - main
+
+jobs:
+  code-check:
+      uses: ./.github/workflows/code-check.yml
