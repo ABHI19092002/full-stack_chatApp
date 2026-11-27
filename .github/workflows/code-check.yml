@@ -1,0 +1,31 @@
+# Goal is to lint the UI & BACKEND CODE to check for any syntgax error or unesed variables.
+name: Code Lint
+
+on:   
+  workflow_run:
+
+jobs:
+  code-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        folders: ['frontend', 'backend']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./${{ matrix.folders }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./${{ matrix.folders }}
+        run: npm ci
+
+      - name: Check Lint
+        working-directory: ./${{ matrix.folders }}
+        run: npm run lint
